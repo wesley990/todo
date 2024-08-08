@@ -147,6 +147,9 @@ class AppTheme {
   static ThemeData get currentTheme {
     return _brightness == Brightness.light ? lightTheme : darkTheme;
   }
+
+  static ContainerTheme get containerTheme =>
+      currentTheme.extension<ContainerTheme>()!;
 }
 
 class ContainerTheme extends ThemeExtension<ContainerTheme> {
