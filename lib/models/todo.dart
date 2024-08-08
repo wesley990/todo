@@ -12,6 +12,13 @@ enum Priority {
 
   const Priority(
       {required this.color, required this.title, required this.icon});
+
+  static List<String> get priorityTitles => [
+        Priority.urgent.title,
+        Priority.high.title,
+        Priority.medium.title,
+        Priority.low.title,
+      ];
 }
 
 class Todo {
