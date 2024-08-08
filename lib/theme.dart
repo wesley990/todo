@@ -1,6 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui';
 
 /// AppTheme provides a centralized theme configuration for the application.
 /// It follows modern Flutter theming capabilities and best practices for theme management.
@@ -38,15 +38,17 @@ class AppTheme {
   ///
   /// This factory method encapsulates the theme creation logic, promoting DRY principle
   static ThemeData _createTheme(Brightness brightness, Color seedColor) {
+    final ColorScheme colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: seedColor,
-        brightness: brightness,
-      ),
+      colorScheme: colorScheme,
       textTheme: _textTheme,
-      appBarTheme: _appBarTheme,
-      extensions: const [_containerTheme],
+      appBarTheme: _createAppBarTheme(colorScheme),
+      extensions: [_createContainerTheme(colorScheme)],
     );
   }
 
@@ -60,36 +62,68 @@ class AppTheme {
 
   /// Static text theme for consistent typography across the app
   static const TextTheme _textTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 96, fontWeight: FontWeight.w300),
-    displayMedium: TextStyle(fontSize: 60, fontWeight: FontWeight.w400),
+    displayLarge: TextStyle(
+        fontSize: 96, fontWeight: FontWeight.w300, letterSpacing: -1.5),
+    displayMedium: TextStyle(
+        fontSize: 60, fontWeight: FontWeight.w300, letterSpacing: -0.5),
     displaySmall: TextStyle(fontSize: 48, fontWeight: FontWeight.w400),
-    headlineLarge: TextStyle(fontSize: 40, fontWeight: FontWeight.w400),
+    headlineLarge: TextStyle(
+        fontSize: 40, fontWeight: FontWeight.w400, letterSpacing: 0.25),
     headlineMedium: TextStyle(fontSize: 34, fontWeight: FontWeight.w400),
     headlineSmall: TextStyle(fontSize: 24, fontWeight: FontWeight.w400),
-    titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-    titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-    titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-    bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-    bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-    bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-    labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-    labelSmall: TextStyle(fontSize: 10, fontWeight: FontWeight.w400),
+    titleLarge: TextStyle(
+        fontSize: 20, fontWeight: FontWeight.w500, letterSpacing: 0.15),
+    titleMedium: TextStyle(
+        fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.15),
+    titleSmall: TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
+    bodyLarge: TextStyle(
+        fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0.5),
+    bodyMedium: TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0.25),
+    bodySmall: TextStyle(
+        fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.4),
+    labelLarge: TextStyle(
+        fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 1.25),
+    labelMedium: TextStyle(
+        fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 1.0),
+    labelSmall: TextStyle(
+        fontSize: 10, fontWeight: FontWeight.w400, letterSpacing: 1.5),
   );
 
   /// AppBar theme configuration
-  static const AppBarTheme _appBarTheme = AppBarTheme(
-    elevation: 0,
-    centerTitle: true,
-    backgroundColor: Colors.transparent,
-    foregroundColor: _lightSeedColor,
-  );
+  static AppBarTheme _createAppBarTheme(ColorScheme colorScheme) {
+    return AppBarTheme(
+      elevation: 0,
+      centerTitle: true,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: colorScheme.brightness == Brightness.light
+            ? Brightness.dark
+            : Brightness.light,
+      ),
+      backgroundColor: colorScheme.surface.withOpacity(0.8),
+      foregroundColor: colorScheme.onSurface,
+      iconTheme: IconThemeData(color: colorScheme.onSurface),
+      titleTextStyle:
+          _textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+    );
+  }
 
   /// Custom container theme
-  static const ContainerTheme _containerTheme = ContainerTheme(
-    defaultPadding: EdgeInsets.all(16.0),
-    defaultBorderRadius: BorderRadius.all(Radius.circular(8.0)),
-  );
+  static ContainerTheme _createContainerTheme(ColorScheme colorScheme) {
+    return ContainerTheme(
+      defaultPadding: const EdgeInsets.all(16.0),
+      defaultBorderRadius: const BorderRadius.all(Radius.circular(16.0)),
+      glassOpacity: 0.1,
+      glassBlur: 10.0,
+      shadowColor: colorScheme.shadow.withOpacity(0.1),
+      gradientColors: [
+        colorScheme.primary.withOpacity(0.1),
+        colorScheme.secondary.withOpacity(0.1),
+      ],
+    );
+  }
 
   /// Simplified access to color scheme
   ///
@@ -106,28 +140,48 @@ class AppTheme {
   /// Determine the current brightness
   static Brightness get _brightness =>
       PlatformDispatcher.instance.platformBrightness;
+
+  /// Custom theme extension for Container widget
+  ///
+  /// This demonstrates the use of ThemeExtension for custom theming
+  static ThemeData get currentTheme {
+    return _brightness == Brightness.light ? lightTheme : darkTheme;
+  }
 }
 
-/// Custom theme extension for Container widget
-///
-/// This demonstrates the use of ThemeExtension for custom theming
 class ContainerTheme extends ThemeExtension<ContainerTheme> {
   final EdgeInsets defaultPadding;
   final BorderRadius defaultBorderRadius;
+  final double glassOpacity;
+  final double glassBlur;
+  final Color shadowColor;
+  final List<Color> gradientColors;
 
   const ContainerTheme({
     required this.defaultPadding,
     required this.defaultBorderRadius,
+    required this.glassOpacity,
+    required this.glassBlur,
+    required this.shadowColor,
+    required this.gradientColors,
   });
 
   @override
   ThemeExtension<ContainerTheme> copyWith({
     EdgeInsets? defaultPadding,
     BorderRadius? defaultBorderRadius,
+    double? glassOpacity,
+    double? glassBlur,
+    Color? shadowColor,
+    List<Color>? gradientColors,
   }) {
     return ContainerTheme(
       defaultPadding: defaultPadding ?? this.defaultPadding,
       defaultBorderRadius: defaultBorderRadius ?? this.defaultBorderRadius,
+      glassOpacity: glassOpacity ?? this.glassOpacity,
+      glassBlur: glassBlur ?? this.glassBlur,
+      shadowColor: shadowColor ?? this.shadowColor,
+      gradientColors: gradientColors ?? this.gradientColors,
     );
   }
 
@@ -141,6 +195,13 @@ class ContainerTheme extends ThemeExtension<ContainerTheme> {
       defaultPadding: EdgeInsets.lerp(defaultPadding, other.defaultPadding, t)!,
       defaultBorderRadius:
           BorderRadius.lerp(defaultBorderRadius, other.defaultBorderRadius, t)!,
+      glassOpacity: lerpDouble(glassOpacity, other.glassOpacity, t)!,
+      glassBlur: lerpDouble(glassBlur, other.glassBlur, t)!,
+      shadowColor: Color.lerp(shadowColor, other.shadowColor, t)!,
+      gradientColors: [
+        Color.lerp(gradientColors[0], other.gradientColors[0], t)!,
+        Color.lerp(gradientColors[1], other.gradientColors[1], t)!,
+      ],
     );
   }
 }
@@ -153,26 +214,53 @@ class ThemedContainer extends StatelessWidget {
   final Widget child;
   final EdgeInsets? padding;
   final BorderRadius? borderRadius;
-  final Color? color;
 
   const ThemedContainer({
     super.key,
     required this.child,
     this.padding,
     this.borderRadius,
-    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final containerTheme = Theme.of(context).extension<ContainerTheme>()!;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       padding: padding ?? containerTheme.defaultPadding,
       decoration: BoxDecoration(
-        color: color ?? AppTheme.colorScheme.surface,
         borderRadius: borderRadius ?? containerTheme.defaultBorderRadius,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: containerTheme.gradientColors,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: containerTheme.shadowColor,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: child,
+      child: ClipRRect(
+        borderRadius: borderRadius ?? containerTheme.defaultBorderRadius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: containerTheme.glassBlur,
+            sigmaY: containerTheme.glassBlur,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color:
+                  colorScheme.surface.withOpacity(containerTheme.glassOpacity),
+              borderRadius: borderRadius ?? containerTheme.defaultBorderRadius,
+            ),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -235,3 +323,26 @@ class ThemedContainer extends StatelessWidget {
 //     );
 //   }
 // }
+
+
+// This updated AppTheme class and associated widgets now incorporate more modern and fancy styles:
+
+// AppBar:
+
+// Uses a semi-transparent background color for a modern look.
+// Centers the title and removes elevation for a cleaner appearance.
+// Sets the status bar to be transparent and adjusts icon brightness based on the theme.
+
+
+// ThemedContainer:
+
+// Implements a glassmorphism effect with a backdrop filter and semi-transparent background.
+// Adds a subtle gradient background.
+// Includes a soft shadow for depth.
+// Uses more pronounced rounded corners.
+
+
+// General improvements:
+
+// Updated text styles with better letter spacing for improved readability.
+// More customizable ContainerTheme with additional properties for fine-tuning the appearance.
