@@ -49,6 +49,7 @@ class AppTheme {
       textTheme: _textTheme,
       appBarTheme: _createAppBarTheme(colorScheme),
       inputDecorationTheme: _createInputDecorationTheme(colorScheme),
+      elevatedButtonTheme: _createElevatedButtonTheme(colorScheme),
       extensions: [_createContainerTheme(colorScheme)],
     );
   }
@@ -183,6 +184,41 @@ class AppTheme {
       prefixStyle: TextStyle(color: colorScheme.onSurface),
       suffixStyle: TextStyle(color: colorScheme.onSurface),
       errorStyle: TextStyle(color: colorScheme.error),
+    );
+  }
+
+  static _createElevatedButtonTheme(ColorScheme colorScheme) {
+    return ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: colorScheme.onPrimary,
+        backgroundColor: colorScheme.primary,
+        disabledForegroundColor: colorScheme.onSurface.withOpacity(0.38),
+        disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
+        shadowColor: colorScheme.shadow,
+        elevation: 8,
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ).copyWith(
+        overlayColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.hovered)) {
+              return colorScheme.onPrimary.withOpacity(0.08);
+            }
+            if (states.contains(WidgetState.focused) ||
+                states.contains(WidgetState.pressed)) {
+              return colorScheme.onPrimary.withOpacity(0.24);
+            }
+            return null;
+          },
+        ),
+      ),
     );
   }
 }
