@@ -48,6 +48,7 @@ class AppTheme {
       colorScheme: colorScheme,
       textTheme: _textTheme,
       appBarTheme: _createAppBarTheme(colorScheme),
+      inputDecorationTheme: _createInputDecorationTheme(colorScheme),
       extensions: [_createContainerTheme(colorScheme)],
     );
   }
@@ -150,6 +151,40 @@ class AppTheme {
 
   static ContainerTheme get containerTheme =>
       currentTheme.extension<ContainerTheme>()!;
+
+  static _createInputDecorationTheme(ColorScheme colorScheme) {
+    return InputDecorationTheme(
+      filled: true,
+      fillColor: colorScheme.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide:
+            BorderSide(color: colorScheme.outline.withOpacity(0.3), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: colorScheme.primary, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: colorScheme.error, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: colorScheme.error, width: 2),
+      ),
+      labelStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.7)),
+      hintStyle: TextStyle(color: colorScheme.onSurface.withOpacity(0.5)),
+      prefixStyle: TextStyle(color: colorScheme.onSurface),
+      suffixStyle: TextStyle(color: colorScheme.onSurface),
+      errorStyle: TextStyle(color: colorScheme.error),
+    );
+  }
 }
 
 class ContainerTheme extends ThemeExtension<ContainerTheme> {
